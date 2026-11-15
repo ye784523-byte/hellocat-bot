@@ -10,6 +10,7 @@ import { loadCommands } from './handlers/commandLoader.js';
 import { loadEvents } from './handlers/eventLoader.js';
 import { startDailyScheduler } from './handlers/scheduler.js';
 import { startAnnouncementScheduler } from './handlers/announcementScheduler.js';
+import { startSolveFeedPoller } from './handlers/solveFeedPoller.js';
 import { importChallenges } from './services/challengeImportService.js';
 import { createBackup } from './utils/backup.js';
 
@@ -103,6 +104,9 @@ async function main() {
     await loadEvents(client, path.join(__dirname, 'events'), ctx, { logger });
     startDailyScheduler(client, ctx);
     startAnnouncementScheduler(client, ctx);
+    // The web terminal can live on another host, its solves arrive over the
+    // feed of the terminal.
+    startSolveFeedPoller(ctx);
 
     if (config.AUTO_BACKUP_HOURS > 0) {
       const runBackup = async () => {

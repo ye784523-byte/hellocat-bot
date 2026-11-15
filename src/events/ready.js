@@ -2,9 +2,20 @@ import { GatewayIntentBits } from 'discord.js';
 import { setPresence } from '../client.js';
 import { resolveAdminRole } from '../utils/permissions.js';
 
-/** Privileged intent flags that Discord reports on the application object. */
-const APPLICATION_FLAG_GUILD_MEMBERS = 1 << 19;
-const APPLICATION_FLAG_MESSAGE_CONTENT = 1 << 20;
+/**
+ * Privileged intent flags that Discord reports on the application object.
+ *
+ * Discord publishes two bits per intent: the `...` variant for applications in
+ * 100 or more guilds and the `...Limited` variant for applications in fewer.
+ * A bot is moved to the limited variant automatically when it is still small,
+ * so both bits have to be accepted.
+ */
+const APPLICATION_FLAG_GUILD_MEMBERS = 1 << 14;
+const APPLICATION_FLAG_GUILD_MEMBERS_LIMITED = 1 << 15;
+const APPLICATION_FLAG_MESSAGE_CONTENT = 1 << 18;
+const APPLICATION_FLAG_MESSAGE_CONTENT_LIMITED = 1 << 19;
+
+const hasFlag = (flags, bit, limited) => Boolean(flags & (bit | limited));
 
 export default {
   name: 'ready',
@@ -17,19 +28,22 @@ export default {
     setPresence(client);
 
     const flags = client.application?.flags ?? 0;
-    if (!client.options.intents.has(GatewayIntentBits.MessageContent) || !(flags & APPLICATION_FLAG_MESSAGE_CONTENT)) {
+    if (
+      !client.options.intents.has(GatewayIntentBits.MessageContent) ||
+      !hasFlag(flags, APPLICATION_FLAG_MESSAGE_CONTENT, APPLICATION_FLAG_MESSAGE_CONTENT_LIMITED)
+    ) {
       ctx.logger.warn(
         'Message Content intent is not enabled in the Discord developer portal; message text is not delivered, so keyword detection and duplicate detection stay inactive.',
-        { stage: 'intents' },
+        { stage: 'intents', flags },
       );
     }
     if (
       client.options.intents.has(GatewayIntentBits.GuildMembers) &&
-      !(flags & APPLICATION_FLAG_GUILD_MEMBERS)
+      !hasFlag(flags, APPLICATION_FLAG_GUILD_MEMBERS, APPLICATION_FLAG_GUILD_MEMBERS_LIMITED)
     ) {
       ctx.logger.warn(
         'Server Members intent is not enabled in the Discord developer portal; member join events will not be delivered.',
-        { stage: 'intents' },
+        { stage: 'intents', flags },
       );
     }
 

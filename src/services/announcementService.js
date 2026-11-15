@@ -123,9 +123,13 @@ export class AnnouncementService {
    * Celebrates a solve that happened in the web terminal with the ranking of
    * the operator, the number of challenges they captured and the catcoins
    * they collected.
+   *
+   * `entry` is the leaderboard row of the operator. The bot computes it from
+   * its own store, but a solve that arrives over the feed of a terminal on
+   * another host brings its row with it.
    */
-  async announceSolve({ submission, challenge }) {
-    const entry = await this.leaderboardService.positionOf(submission.userId);
+  async announceSolve({ submission, challenge, entry: given = null }) {
+    const entry = given ?? (await this.leaderboardService.positionOf(submission.userId));
     const url = this.challengeUrl(challenge?.id ?? submission.challengeId);
     const username = entry.username ?? 'operator';
 

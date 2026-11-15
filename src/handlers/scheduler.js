@@ -27,7 +27,17 @@ export function startDailyScheduler(client, ctx) {
       if (settings.daily?.date !== daily.date || settings.daily?.announcedAt) return;
 
       // The channel assistant explains the challenge and links the terminal.
-      await ctx.services.announcementService.announceChallenge(daily.challenge);
+      // A failed post (missing permissions, a deleted channel) must not mark
+      // the challenge as announced, otherwise the day is silently skipped.
+      const message = await ctx.services.announcementService.announceChallenge(daily.challenge);
+      if (!message) {
+        ctx.logger.warn('Daily challenge was not announced, it stays pending', {
+          date: daily.date,
+          challengeId: daily.challenge.id,
+          channelId,
+        });
+        return;
+      }
 
       await ctx.storage.settingsRepo.update((data) => {
         if (data.daily?.date === daily.date) {

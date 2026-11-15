@@ -29,6 +29,11 @@ const schema = z.object({
   AUTO_BACKUP_HOURS: z.coerce.number().int().min(0).max(168).default(24),
   WEB_BASE_URL: z.string().trim().optional().default(''),
   WEB_PUBLIC_URL: z.string().trim().optional().default(''),
+  // The address of the web terminal and the shared secret of its solve
+  // feed. With both set the bot announces the captures that happen in the
+  // browser, even when the terminal runs on another host.
+  WEB_TERMINAL_URL: z.string().trim().optional().default(''),
+  WEB_BRIDGE_TOKEN: z.string().trim().optional().default(''),
   DISCORD_INVITE_URL: z.string().trim().optional().default(''),
   OFFICIAL_SITE_URL: z.string().trim().optional().default('https://helloc.at'),
   ANNOUNCE_SOLVES: booleanish.default(true),
