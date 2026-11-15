@@ -13,7 +13,6 @@
  *   node scripts/build-deploy-zip.js [options]
  *
  *   --out <file>     output archive (default: dist/hellocat-bot.zip)
- *   --no-web         leave the web terminal (web/) out of the archive
  *   --no-state       leave the runtime state (src/storage/data/*.json) out, so
  *                    the deployment starts with an empty store
  *   --with-tests     also ship the test suite (tests/)
@@ -23,6 +22,10 @@
  * of this machine: either configure the same secret on the host, or set
  * CHALLENGE_IMPORT_ON_START=true there, which re-hashes every flag in
  * `challenges/` with the secret configured in the panel.
+ *
+ * The web terminal is not part of this repository. It lives in
+ * https://github.com/ye784523-byte/hellocat_challenges and is deployed on its
+ * own.
  */
 
 import fs from 'node:fs/promises';
@@ -40,7 +43,6 @@ const value = (name, fallback) => {
   return index >= 0 && args[index + 1] ? args[index + 1] : fallback;
 };
 
-const WITH_WEB = !has('no-web');
 const WITH_TESTS = has('with-tests');
 const WITH_STATE = !has('no-state');
 const OUT = path.resolve(ROOT, value('out', 'dist/hellocat-bot.zip'));
@@ -62,14 +64,12 @@ const EXCLUDE_DIRS = new Set([
   'coverage',
   '.idea',
   '.vscode',
-  'termux-ngrok',
 ]);
 
 const isExcludedFile = (name) => {
   // Any .env variant except the template.
   if (name.startsWith('.env') && name !== '.env.example') return true;
-  // Local binaries and generated noise.
-  if (name === 'ngrok') return true;
+  // Generated noise.
   if (name.endsWith('.bak')) return true;
   if (name.includes('.corrupt-')) return true;
   if (name.endsWith('.lock')) return true;
@@ -100,10 +100,6 @@ async function copyFile(staging, relative, source = relative) {
   const from = path.join(ROOT, source);
   await fs.mkdir(path.dirname(path.join(staging, relative)), { recursive: true });
   await fs.copyFile(from, path.join(staging, relative));
-}
-
-async function exists(relative) {
-  return Boolean(await fs.stat(path.join(ROOT, relative)).catch(() => null));
 }
 
 async function writeEmpty(staging, relative) {
@@ -170,8 +166,6 @@ async function main() {
   for (const dir of INCLUDE_DIRS) {
     await copyTree(staging, dir, { keepState: WITH_STATE });
   }
-  const hasWeb = await exists('web');
-  if (WITH_WEB && hasWeb) await copyTree(staging, 'web');
   if (WITH_TESTS) await copyTree(staging, 'tests');
 
   for (const file of INCLUDE_FILES) {
@@ -196,7 +190,6 @@ async function main() {
   console.log(`  files:          ${stats.files}`);
   console.log(`  uncompressed:   ${(stats.bytes / 1024).toFixed(1)} KiB`);
   console.log(`  zip size:       ${(size / 1024).toFixed(1)} KiB`);
-  console.log(`  web terminal:   ${WITH_WEB ? (hasWeb ? 'included' : 'missing from this checkout') : 'excluded (--with-web to include)'}`);
   console.log(`  runtime state:  ${WITH_STATE ? 'included' : 'empty (--no-state)'}`);
 
   await fs.rm(staging, { recursive: true, force: true });

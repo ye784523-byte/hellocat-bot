@@ -27,8 +27,8 @@ Open the **Files** tab of the deployment:
 1. Upload `hellocat-bot.zip`.
 2. Click the three dots next to the archive and choose **Unarchive**.
 3. If the archive extracted into a folder (for example `hellocat-bot/`), drag
-   the files **out** of it so that `package.json`, `src/`, `web/` and
-   `challenges/` are in the deployment root.
+   the files **out** of it so that `package.json`, `src/` and `challenges/`
+   are in the deployment root.
 4. Delete the archive and the leftover folder to free space.
 
 `node_modules` is intentionally not in the archive. The panel installs the
@@ -50,9 +50,9 @@ The start command is a full shell line and runs on every boot, so the
 from `package.json` itself; keeping the explicit install is what makes a
 restart work after a dependency change.
 
-To run the web terminal instead, use `web/index.js` as the entry file and
-`npm install --omit=dev && node web/index.js` as the start command. It needs
-its own deployment and its own public URL (see section 7).
+The web terminal is a separate repository
+([hellocat_challenges](https://github.com/ye784523-byte/hellocat_challenges))
+and therefore a separate deployment. See section 7.
 
 ## 4. Environment variables
 
@@ -145,19 +145,25 @@ Everything is also written to `logs/bot-<date>.log` inside the deployment.
 
 ## 7. Web terminal (optional)
 
-The web terminal is a second process and therefore a second deployment:
+The web terminal is a second process, a second repository
+([hellocat_challenges](https://github.com/ye784523-byte/hellocat_challenges))
+and therefore a second deployment:
 
-1. Create another deployment from the same archive.
-2. Entry file `web/index.js`, start command
-   `npm install --omit=dev && node web/index.js`.
-3. Add `DISCORD_CLIENT_SECRET`, `WEB_CLIENT_ID`, `WEB_BASE_URL`,
-   `WEB_REDIRECT_URI`, `SESSION_SECRET`, `WEB_PORT` and `WEB_HOST=0.0.0.0`.
-4. Link a domain in the **Domains** tab and set `WEB_BASE_URL` to it.
-5. Register `<WEB_BASE_URL>/auth/callback` as a redirect URI in the Discord
+1. Deploy that repository separately — `npm ci` as the build command and
+   `npm start` as the start command.
+2. Add `CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `FLAG_SECRET`, `SESSION_SECRET`,
+   `WEB_BASE_URL`, `WEB_REDIRECT_URI`, `WEB_PORT` and `WEB_HOST=0.0.0.0`.
+3. Link a domain in the **Domains** tab and set `WEB_BASE_URL` to it.
+4. Register `<WEB_BASE_URL>/auth/callback` as a redirect URI in the Discord
    developer portal.
 
 `WEB_COOKIE_SECURE=auto` and `WEB_TRUST_PROXY=true` are the right defaults
 behind the panel's proxy.
+
+Both processes must use the **same `FLAG_SECRET`**, otherwise the terminal
+computes different flag hashes than the bot and no submission verifies. To
+share progress, point the terminal's `DATA_DIR` at the bot's data directory —
+on a panel that means mounting the same volume in both deployments.
 
 ## 8. Data and persistence
 
@@ -192,7 +198,6 @@ The archive lands in `dist/hellocat-bot.zip`. Options:
 | Option | Effect |
 | --- | --- |
 | `--out <file>` | Write to another path. |
-| `--no-web` | Leave the web terminal out. |
 | `--no-state` | Ship an empty data store. |
 | `--with-tests` | Ship the test suite as well. |
 
