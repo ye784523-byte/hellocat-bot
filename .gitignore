@@ -1,0 +1,35 @@
+node_modules/
+.env
+.env.*
+!.env.example
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# The web terminal and its tooling are not part of this repository.
+web/
+ngrok
+termux-ngrok/
+
+# Its test suite lives next to the terminal it covers.
+tests/web-*.test.js
+
+logs/*
+!logs/.gitkeep
+backups/*
+!backups/.gitkeep
+
+dist/
+
+src/storage/data/*.json
+src/storage/data/*.json.bak
+src/storage/data/*.corrupt-*
+src/storage/data/*.lock
+!src/storage/data/.gitkeep
+
+*.tmp
+*.lock
+.DS_Store
+coverage/
+.idea/
+.vscode/
