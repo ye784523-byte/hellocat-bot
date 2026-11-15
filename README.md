@@ -585,14 +585,22 @@ Detach with `Ctrl+b`, then `d`; reattach with `tmux attach -t hellocat`.
 
 ### The web terminal
 
-The terminal lives in its own repository and has its own deployment guide:
+The terminal lives in its own repository and has its own installer and
+deployment guide:
 
 **[hellocat_challenges](https://github.com/ye784523-byte/hellocat_challenges)**
 
+```bash
+curl -fsSL https://raw.githubusercontent.com/ye784523-byte/hellocat_challenges/main/install.sh | bash
+```
+
+The installer checks Node.js, fetches the application, installs the
+dependencies and writes a `.env` with generated secrets. On a server,
+`sudo ./install.sh --server` also installs the systemd unit and the nginx
+site.
+
 It runs as a separate Node process against the same `DATA_DIR`, so the two can
-be hosted on the same machine or on two machines with a shared volume. The
-nginx template and the systemd unit used by the terminal live in that
-repository's `deploy/` folder.
+be hosted on the same machine or on two machines with a shared volume.
 
 ---
 
