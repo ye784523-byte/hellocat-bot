@@ -9,8 +9,6 @@
 
 **A cybersecurity CTF, education and community bot for Discord.**
 
-*The white rabbit left a trail. The black cat reads it.*
-
 Hello Cat is a self-contained Node.js Discord bot. It stores its data in local
 JSON files (no database server), hashes challenge flags with a keyed HMAC, and
 keeps every cybersecurity exercise inside fictional, authorized lab scenarios.
